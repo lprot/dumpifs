@@ -2,9 +2,7 @@
 
 PRGNAME=$0
 
-DIRNAME=$(dirname $0)
-
-DUMPIFS=$DIRNAME/dumpifs
+DUMPIFS=$PWD/dumpifs
 
 prnUsageAndQuit()
 {

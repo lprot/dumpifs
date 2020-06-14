@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "sys/image.h"
 #include "sys/startup.h"
 
@@ -68,13 +69,13 @@ static void process(FILE *fp)
 	int ipos;
 	int fsize;
 
-	if((ipos = find(fp, (char*)&ihdr.signature, sizeof ihdr.signature, 0)) == -1) {
+	if((ipos = find(fp, (const unsigned char*)&ihdr.signature, sizeof ihdr.signature, 0)) == -1) {
 		rewind(fp);
 		while(1){
-			if((spos = find(fp, (char *)&shdr.signature, sizeof shdr.signature, -1)) == -1) {			
+			if((spos = find(fp, (const unsigned char *)&shdr.signature, sizeof shdr.signature, -1)) == -1) {			
 				shdr.signature = ENDIAN_RET32(shdr.signature);
 				rewind(fp);
-				if((spos = find(fp, (char *)&shdr.signature, sizeof shdr.signature, -1)) == -1) {
+				if((spos = find(fp, (const unsigned char *)&shdr.signature, sizeof shdr.signature, -1)) == -1) {
 					error(1, "Unable to find startup header in %s", (char*)file);
 					return;
 				}
@@ -96,7 +97,7 @@ static void process(FILE *fp)
 		}
 	}
 	fseek(fp, spos + shdr.startup_size, SEEK_SET);
-	if((ipos = find(fp, ihdr.signature, sizeof ihdr.signature, -1)) == -1) {
+	if((ipos = find(fp, (const unsigned char *)&ihdr.signature, sizeof ihdr.signature, -1)) == -1) {
 		error(1, "Unable to find image header in %s", file);
 		return;
 	}
@@ -134,23 +135,23 @@ static void process(FILE *fp)
 		if(0 != (itlr.cksum - sum))
 		{
 			printf("\nStored checksum not correct!\n");
-			printf("Expected checksum: %#lx\n", sum);
+			printf("Expected checksum: %#x\n", sum);
 			printf("  NG: %02x %02x %02x %02x\n", itlr.cksum & 0xff, (itlr.cksum >> 8) & 0xff, (itlr.cksum >> 16) & 0xff, (itlr.cksum >> 24) & 0xff);
 			printf("GOOD: %02x %02x %02x %02x\n", sum & 0xff, (sum >> 8) & 0xff, (sum >> 16) & 0xff, (sum >> 24) & 0xff);
 			if(fixchksum)
 			{
 				fseek(fp, ipos + ihdr.image_size-sizeof(itlr), SEEK_SET);
 				itlr.cksum = sum;
-				printf("Update - write %d bytes (expect write %d bytes)\n", fwrite(&itlr, sizeof itlr, 1, fp) * sizeof itlr, sizeof itlr);			
+				printf("Update - write %lu bytes (expect write %lu bytes)\n", fwrite(&itlr, sizeof itlr, 1, fp) * sizeof itlr, sizeof itlr);			
 				fclose(fp);
 			}
 		}
 	} else {
 		printf("Image size is too small! Must at lease %d bytes.\n", (spos + shdr.startup_size + ihdr.image_size));
 	}
-	printf("Found ipos=%#lx spos=%#lx (%d)\n", ipos, spos, spos);
-	printf("Compressed data offset=%#lx\n", spos + shdr.startup_size);
-	printf("Image startup_size=%#lx (%ld) image_size=%#lx (%ld)\n", shdr.startup_size, shdr.startup_size, ihdr.image_size, ihdr.image_size);
+	printf("Found ipos=%#x spos=%#x (%d)\n", ipos, spos, spos);
+	printf("Compressed data offset=%#x\n", spos + shdr.startup_size);
+	printf("Image startup_size=%#x (%u) image_size=%#x (%u)\n", shdr.startup_size, shdr.startup_size, ihdr.image_size, ihdr.image_size);
 
 }
 

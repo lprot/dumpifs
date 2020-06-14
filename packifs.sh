@@ -1,24 +1,24 @@
 #!/bin/sh
-ucltool=`dirname $0`/uuu
-lzotool=`dirname $0`/zzz
+ucltool=$PWD/uuu
+lzotool=$PWD/zzz
 compressUse=$ucltool
 
-fixdecifs=`dirname $0`/fixdecifs
-fixencifs=`dirname $0`/fixencifs
+fixdecifs=$PWD/fixdecifs
+fixencifs=$PWD/fixencifs
 
 tempBody=__temp__B
 tempBody2=__temp__B2
 
 if [ $# -lt 3 ];then
 cat << EOF
-Usage: $0 <head offset(dec)> <decompressed.ifs> <destination ifs> [format: ucl|lzo]
-head offset could be found when dump a ifs file.
+Usage: $0 <image startup_size(dec)> <decompressed.ifs> <destination.ifs> [format: ucl|lzo]
+Image startup_size (usually 260), can be found by running dumpifs over original ifs file.
 EOF
 exit
 fi
 
 if [ $1 -lt 260 ];then
-echo "Invalid offset. Atleast 260"
+echo "Invalid offset. Should be at least 260"
 exit
 fi
 
@@ -27,17 +27,17 @@ srcIfs=$2
 dstIfs=$3
 
 if [ -e $tempBody ];then
-echo "Temperate file $tempBody exist!"
+echo "Temporary file $tempBody exists!"
 exit
 fi
 
 if [ -e $tempBody2 ];then
-echo "Temperate file $tempBody2 exist!"
+echo "Temporary file $tempBody2 exists!"
 exit
 fi
 
 if [ -e $dstIfs ];then
-echo "Destination file $dstIfs exist!"
+echo "Destination file $dstIfs exists!"
 exit
 fi
 
@@ -45,11 +45,11 @@ fi
 if [ "x$4" = "xucl" ]
 then
 packuse=1
-echo "Pack using ucl"
+echo "Packing by using ucl"
 elif [ "x$4" = "xlzo" ]
 then
 packuse=2
-echo "Pack using lzo"
+echo "Packing by using lzo"
 else
 
 cat << EOF
@@ -80,7 +80,7 @@ fi
 echo "Fix checksum of decompressed"
 $fixdecifs $srcIfs Y
 
-echo "Select $packuse . Use compress tool $compressUse"
+echo "Select $packuse. Use compress tool $compressUse"
 
 dd if=$srcIfs of=$dstIfs bs=$offsetH count=1
 dd if=$srcIfs of=$tempBody bs=$offsetH skip=1
@@ -100,7 +100,7 @@ then
 else
 	padlen=4
 fi
-echo "finalSize is $finalSize  padlen is $padlen"
+echo "finalSize: $finalSize, padlen: $padlen"
 
 finalSize=`du -b $dstIfs | awk '{print($1)}'`
 dd if=/dev/zero of=$dstIfs bs=1 count=$padlen seek=$finalSize
